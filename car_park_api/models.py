@@ -2,7 +2,83 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.translation import gettext_lazy as _
+from django.contrib import auth
+from django.contrib.auth.hashers import make_password
+import django.utils.timezone
+from datetime import datetime
+from django.utils import formats
 
+
+class Car(models.Model):
+    name = models.CharField(_('Название'), max_length=100, blank=False, null=False, unique=True)
+    year_release = models.IntegerField(_('Год выпуска'), blank=False, null=True)
+    mileage = models.IntegerField(_('Пробег'), blank=False, null=True)
+    volume = models.FloatField(_('Объем'), max_length=10, blank=False, null=True)
+    power = models.IntegerField(_('Мощность'), blank=False, null=True)
+    box_choices = [
+        ('mechanics', 'Механика'),
+        ('machine', 'Автомат'),
+        ('robot', 'Робот'),
+        ('variable', 'Вариантная'),
+    ]
+    box = models.CharField(_('Коробка'), max_length=9, choices=box_choices, blank=False, null=True)
+    engine_choisec = [
+        ('oppositional','Оппозитный'),
+        ('inline', 'Рядный'),
+        ('V-type', 'V-типа'),
+        ('quasi-turbine', 'Квазитурбинный'),
+        ('rotary', 'Роторный')
+    ]
+    engine_type = models.CharField(_('Двигатель'), max_length=13, choices=engine_choisec, blank=False, null=True)
+    fuel = models.CharField(_('Топливо'), max_length=10, blank=False, null=True)
+    drive_choices = [
+        ('rear', 'Задний'),
+        ('front', 'Передний'),
+        ('full', 'Полный'),
+    ]
+    drive = models.CharField(_('Привод'), max_length=5, choices=drive_choices, blank=False, null=True)
+    overclocking = models.FloatField(_('Разгон'), max_length=10, blank=False, null=True)
+    price = models.PositiveIntegerField(_('Стоимость'), blank=False, null=True)
+
+    def __str__(self):
+        return str(self.name)
+
+
+class Order(models.Model):
+    owner = models.ForeignKey("User", verbose_name='Заказчик', on_delete=models.CASCADE, related_name='user_orders', blank=False, null=False)
+    driver = models.ForeignKey("User", verbose_name='Курьер', on_delete=models.DO_NOTHING, related_name='driver_orders', blank=True, null=True)
+    car = models.ForeignKey("Car", verbose_name='Машина', on_delete=models.DO_NOTHING, related_name='car_orders', blank=False, null=False)
+    first_name = models.CharField(_('Имя'), max_length=150, blank=False, null=True)
+    last_name = models.CharField(_('Фамилия'), max_length=150, blank=False, null=True)
+    patronymic = models.CharField(_('Отчество'), max_length=150, blank=False, null=True)
+    date_birth =  models.DateField(_('Дата рождения'), blank=False, null=True)
+    phone_number = models.CharField(_('Номер телефона'), max_length=20, blank=False, null=True)
+    passport_number = models.CharField(_('Серия и номер'), max_length=20, blank=False, null=True)
+    passport_issued_by = models.CharField(_('Кем выдан'), max_length=200, blank=False, null=True)
+    passport_issue_date = models.DateField(_('Дата выдачи'), blank=False, null=True)
+    registration_address = models.CharField(_('Адрес регистрации'),max_length=200, blank=False, null=True)
+    driver_license_number = models.CharField(_('Серия и номер ВУ'), max_length=20, blank=False, null=True)
+    delivery_choices = [
+        ('delivery', 'Доставка'),
+        ('pickup', 'Самовывоз')
+    ]
+    delivery_type = models.CharField(_('Тип доставки'),max_length=8, choices=delivery_choices, blank=False, null=True)
+    delivery_address = models.CharField(_('Адрес доставки'), max_length=100, blank=True, null=True, default='Университетская площадь, 1')
+    pickup_address = models.CharField(_('Самовывоз'), max_length=100, blank=True, null=True)
+    start_date = models.DateTimeField(_('Дата и время начала аренды'), blank=False, null=True)
+    rental_days = models.PositiveIntegerField(_('Количество дней аренды'), blank=False, null=True)
+    payment_choices = (
+        ('qr', 'QR-код'),
+        ('cash', 'Наличные')
+    )
+    payment_method = models.CharField(_('Способ оплаты'), max_length=4, choices=payment_choices, blank=False, null=True)
+
+    def get_start_date(self):
+        date = formats.date_format(self.start_date,format='DATETIME_FORMAT', use_l10n=True)
+        return _(date)
+
+    def __str__(self):
+        return f"Заказчик {self.owner.get_fullname()} {self.car} {self.get_start_date()}"
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
