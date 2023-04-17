@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'car_park_api',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
