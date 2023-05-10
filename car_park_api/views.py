@@ -2,23 +2,33 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from djoser import signals, utils
 from djoser.conf import settings
-from rest_framework import viewsets, status
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from .serializers import CarSerializer, CustomerSerializer, DriverSerializer
-from .models import Car
+from .permissions import Unsafe4AdminsOnly
+from .serializers import CarSerializer, OrderSerializer, CustomerSerializer, DriverSerializer
+from .models import Car, Order
 
 User = get_user_model()
 
 
-class CarViewSet(viewsets.ModelViewSet):
-    queryset = Car.objects.all().order_by('name')
+class CarViewSet(ModelViewSet):
+    queryset = Car.objects.all()
     serializer_class = CarSerializer
 
+    permission_classes = [Unsafe4AdminsOnly]
 
-class UserViewSet(viewsets.ModelViewSet):
+
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+
+class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     permission_classes = settings.PERMISSIONS.user
     token_generator = default_token_generator

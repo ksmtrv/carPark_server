@@ -1,25 +1,107 @@
+from datetime import datetime
+import re
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
+from django.utils import timezone
 
 from .models import Car, Order, User
 
 
-class CarSerializer(serializers.HyperlinkedModelSerializer):
+class CarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Car
-        fields = ('name', 'price')  # TODO: расширить
+        fields = ('name',
+                  'year_release',
+                  'mileage',
+                  'volume',
+                  'power',
+                  'box',
+                  'engine_type',
+                  'fuel',
+                  'drive',
+                  'overclocking',
+                  'price')
+
+    def validate(self, attrs):
+        year_release = attrs.get('year_release')
+        mileage = attrs.get('mileage')
+        volume = attrs.get('volume')
+        power = attrs.get('power')
+        price = attrs.get('price')
+
+        self.validate_year_release(year_release)
+        self.validate_mileage(mileage)
+        self.validate_volume(volume)
+        self.validate_power(power)
+        self.validate_price(price)
+
+        return attrs
+
+    def validate_year_release(self, value):
+        current_year = timezone.now().year
+        if value < 1950 or value > current_year:
+            raise serializers.ValidationError("Год выпуска автомобиля должен быть не меньше 1950 и не больше текущего года.")
+
+    def validate_mileage(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Пробег не может быть отрицательным.")
+
+    def validate_volume(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Объем двигателя должен быть положительным числом.")
+
+    def validate_power(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Мощность двигателя должна быть положительным числом.")
+
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Цена должна быть больше 0.")
 
 
-class OrderSerializer(serializers.HyperlinkedModelSerializer):
+
+class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ('owner', 'car')  # TODO: расширить
+        fields = ('owner',
+                  'driver',
+                  'car',
+                  'first_name',
+                  'last_name',
+                  'patronymic',
+                  'date_birth',
+                  'phone_number',
+                  'passport_number',
+                  'passport_issued_by',
+                  'passport_issue_date',
+                  'registration_address',
+                  'driver_license_number',
+                  'delivery_type',
+                  'delivery_address',
+                  'pickup_address',
+                  'start_date',
+                  'rental_days',
+                  'payment_method')
+
+    def validate(self, attrs):
+        driver_license_number = attrs.get('driver_license_number')
+
+        self.validate_driver_license_number(driver_license_number)
+
+        if attrs['start_date'] < datetime.now().date():
+            raise serializers.ValidationError("Дата начала аренды не может быть в прошлом")
+        if attrs['rental_days'] <= 0:
+            raise serializers.ValidationError("Длительность аренды должна быть больше нуля")
+        return attrs
+
+    def validate_driver_license_number(self, value):
+        pattern = r"^[A-Z]{2}\d{7}$"
+        if not re.match(pattern, value):
+            raise serializers.ValidationError(
+                "Некорректный формат номера водительского удостоверения. "
+                "Формат должен состоять из двух заглавных букв, за которыми следуют семь цифр.")
 
 
-# class UserSerializer(serializers.HyperlinkedModelSerializer):
-#     class Meta:
-#         model = Order
-#         fields = ('first_name', 'last_name')#TODO: расширить
 
 class UserSerializer(UserCreateSerializer):
     password = serializers.CharField(write_only=True)
