@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
+from django.utils.safestring import mark_safe
+
 from .forms import UserAdminCreationForm, UserAdminChangeForm
 from .models import Car, Order
 
@@ -26,6 +28,17 @@ class OrderInline(admin.TabularInline):
 
 class CarAdmin(admin.ModelAdmin):
     inlines = (OrderInline,)
+    readonly_fields = ['car_img', ]
+
+    def car_img(self, obj):
+        return mark_safe('<img src="{url}" style="max-height:400px;height:100%" />'.format(
+            url=obj.car_image.url,
+            width=obj.car_image.width,
+            height=obj.car_image.height,
+        )
+        )
+
+    car_img.short_description = 'Фотография машины'
 
 
 admin.site.register(Car, CarAdmin)

@@ -5,7 +5,7 @@ from djoser.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
-from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
@@ -21,6 +21,7 @@ class CarViewSet(ModelViewSet):
     serializer_class = CarSerializer
 
     permission_classes = [Unsafe4AdminsOnly]
+    pagination_class = LimitOffsetPagination
 
 
 class OrderViewSet(ModelViewSet):

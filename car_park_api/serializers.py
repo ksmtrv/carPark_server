@@ -10,17 +10,19 @@ from .models import Car, Order, User
 class CarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Car
-        fields = ('name',
-                  'year_release',
-                  'mileage',
-                  'volume',
-                  'power',
-                  'box',
-                  'engine_type',
-                  'fuel',
-                  'drive',
-                  'overclocking',
-                  'price')
+        fields = ('id',
+            'name',
+            'year_release',
+            'mileage',
+            'volume',
+            'power',
+            'box',
+            'engine_type',
+            'fuel',
+            'drive',
+            'overclocking',
+            'price',
+            'car_image')
 
     def validate(self, attrs):
         year_release = attrs.get('year_release')
@@ -40,7 +42,8 @@ class CarSerializer(serializers.ModelSerializer):
     def validate_year_release(self, value):
         current_year = timezone.now().year
         if value < 1950 or value > current_year:
-            raise serializers.ValidationError("Год выпуска автомобиля должен быть не меньше 1950 и не больше текущего года.")
+            raise serializers.ValidationError(
+                "Год выпуска автомобиля должен быть не меньше 1950 и не больше текущего года.")
 
     def validate_mileage(self, value):
         if value < 0:
@@ -57,7 +60,6 @@ class CarSerializer(serializers.ModelSerializer):
     def validate_price(self, value):
         if value <= 0:
             raise serializers.ValidationError("Цена должна быть больше 0.")
-
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -100,7 +102,6 @@ class OrderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Некорректный формат номера водительского удостоверения. "
                 "Формат должен состоять из двух заглавных букв, за которыми следуют семь цифр.")
-
 
 
 class UserSerializer(UserCreateSerializer):
