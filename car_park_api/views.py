@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from djoser import signals, utils
 from djoser.conf import settings
 from rest_framework import status
@@ -7,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from .permissions import Unsafe4AdminsOnly
@@ -97,7 +99,7 @@ class CustomerViewSet(UserViewSet):
         if self.action == "create":
             self.permission_classes = settings.PERMISSIONS.user_create
         elif self.action == "destroy" or (
-            self.action == "me" and self.request and self.request.method == "DELETE"
+                self.action == "me" and self.request and self.request.method == "DELETE"
         ):
             self.permission_classes = settings.PERMISSIONS.user_delete
         return super().get_permissions()
@@ -106,7 +108,7 @@ class CustomerViewSet(UserViewSet):
         if self.action == "create":
             return CustomerSerializer
         elif self.action == "destroy" or (
-            self.action == "me" and self.request and self.request.method == "DELETE"
+                self.action == "me" and self.request and self.request.method == "DELETE"
         ):
             return settings.SERIALIZERS.user_delete
         elif self.action == "me":
@@ -122,7 +124,7 @@ class DriverViewSet(UserViewSet):
         if self.action == "create":
             self.permission_classes = settings.PERMISSIONS.user_create
         elif self.action == "destroy" or (
-            self.action == "me" and self.request and self.request.method == "DELETE"
+                self.action == "me" and self.request and self.request.method == "DELETE"
         ):
             self.permission_classes = settings.PERMISSIONS.user_delete
         return super().get_permissions()
@@ -131,10 +133,22 @@ class DriverViewSet(UserViewSet):
         if self.action == "create":
             return DriverSerializer
         elif self.action == "destroy" or (
-            self.action == "me" and self.request and self.request.method == "DELETE"
+                self.action == "me" and self.request and self.request.method == "DELETE"
         ):
             return settings.SERIALIZERS.user_delete
         elif self.action == "me":
             return settings.SERIALIZERS.current_user
 
         return self.serializer_class
+
+
+class SendEmailView(APIView):
+    def post(self, request):
+        sender = request.data.get("sender")
+        message = request.data.get("message")
+        if sender is not None and message is not None:
+            send_mail("Обратная связь", f"Сообщение от: {sender}\nТекст сообщения: {message}",
+                      "pmk.company2023@yandex.ru", ["pmk.company2023@yandex.ru"], fail_silently=False)
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
