@@ -85,24 +85,6 @@ class OrderSerializer(serializers.ModelSerializer):
                   'rental_days',
                   'payment_method')
 
-    def validate(self, attrs):
-        driver_license_number = attrs.get('driver_license_number')
-
-        self.validate_driver_license_number(driver_license_number)
-
-        if attrs['start_date'] < datetime.now().date():
-            raise serializers.ValidationError("Дата начала аренды не может быть в прошлом")
-        if attrs['rental_days'] <= 0:
-            raise serializers.ValidationError("Длительность аренды должна быть больше нуля")
-        return attrs
-
-    def validate_driver_license_number(self, value):
-        pattern = r"^[A-Z]{2}\d{7}$"
-        if not re.match(pattern, value):
-            raise serializers.ValidationError(
-                "Некорректный формат номера водительского удостоверения. "
-                "Формат должен состоять из двух заглавных букв, за которыми следуют семь цифр.")
-
 
 class UserSerializer(UserCreateSerializer):
     password = serializers.CharField(write_only=True)
