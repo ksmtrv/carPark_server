@@ -124,3 +124,14 @@ class CustomerSerializer(UserSerializer):
 class DriverSerializer(UserSerializer):
     def create(self, validated_data):
         return super(DriverSerializer, self).inner_create(validated_data, True)
+
+
+class CustomerInfoSerializer(UserSerializer):
+
+    class Meta:
+        model = User
+        fields = ('email',
+                  'first_name',
+                  'last_name',
+                  'patronymic',
+                  )

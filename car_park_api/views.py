@@ -1,18 +1,23 @@
+import datetime
+from datetime import datetime, timedelta
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db import models
+from django.db.models import F, ExpressionWrapper, Func
 from djoser import signals, utils
 from djoser.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from .permissions import Unsafe4AdminsOnly
-from .serializers import CarSerializer, OrderSerializer, CustomerSerializer, DriverSerializer
+from .serializers import CarSerializer, OrderSerializer, CustomerSerializer, DriverSerializer, CustomerInfoSerializer
 from .models import Car, Order
 
 User = get_user_model()
@@ -29,6 +34,33 @@ class CarViewSet(ModelViewSet):
 class OrderViewSet(ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        is_curr = self.request.query_params.get('is_curr')
+        is_past = self.request.query_params.get('is_past')
+        if is_curr is not None and is_curr=="true":
+            curr = datetime.now().timestamp()
+            queryset = Order.objects.filter(owner=self.request.user)
+            queryset_none = set()
+            for item in queryset:
+                if (item.start_date + timedelta(days=item.rental_days)).timestamp() > curr:
+                    queryset_none.add(item)
+
+            return queryset_none
+        if is_past is not None and is_past=="true":
+            curr = datetime.now().timestamp()
+            queryset = Order.objects.filter(owner=self.request.user)
+            queryset_none = set()
+            for item in queryset:
+                if (item.start_date + timedelta(days=item.rental_days)).timestamp() < curr:
+                    queryset_none.add(item)
+
+            return queryset_none
+
+        return super(OrderViewSet, self).get_queryset()
+
+
 
 
 class UserViewSet(ModelViewSet):
@@ -112,7 +144,7 @@ class CustomerViewSet(UserViewSet):
         ):
             return settings.SERIALIZERS.user_delete
         elif self.action == "me":
-            return settings.SERIALIZERS.current_user
+            return CustomerInfoSerializer
 
         return self.serializer_class
 
