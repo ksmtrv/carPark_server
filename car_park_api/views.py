@@ -39,7 +39,8 @@ class OrderViewSet(ModelViewSet):
     def get_queryset(self):
         is_curr = self.request.query_params.get('is_curr')
         is_past = self.request.query_params.get('is_past')
-        if is_curr is not None and is_curr=="true":
+        is_delivery = self.request.query_params.get('is_delivery')
+        if is_curr is not None and is_curr == "true":
             curr = datetime.now().timestamp()
             queryset = Order.objects.filter(owner=self.request.user)
             queryset_none = set()
@@ -48,7 +49,7 @@ class OrderViewSet(ModelViewSet):
                     queryset_none.add(item)
 
             return queryset_none
-        if is_past is not None and is_past=="true":
+        if is_past is not None and is_past == "true":
             curr = datetime.now().timestamp()
             queryset = Order.objects.filter(owner=self.request.user)
             queryset_none = set()
@@ -57,10 +58,17 @@ class OrderViewSet(ModelViewSet):
                     queryset_none.add(item)
 
             return queryset_none
+        if is_delivery is not None and is_delivery == "true":
+            curr = datetime.now().timestamp()
+            queryset = Order.objects.filter(delivery_type='Доставка')
+            queryset_none = set()
+            for item in queryset:
+                if (item.start_date + timedelta(days=item.rental_days)).timestamp() > curr:
+                    queryset_none.add(item)
+
+            return queryset_none
 
         return super(OrderViewSet, self).get_queryset()
-
-
 
 
 class UserViewSet(ModelViewSet):
