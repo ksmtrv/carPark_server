@@ -94,6 +94,16 @@ class Order(models.Model):
         ('Наличные', 'Наличные')
     )
     payment_method = models.CharField(_('Способ оплаты'), max_length=8, choices=payment_choices, blank=False, null=True)
+    is_paid = models.BooleanField(
+        _('paid status'),
+        default=False,
+        help_text=_('Indicates whether this order has been paid for or not.'),
+    )
+    is_delivered = models.BooleanField(
+        _('delivered status'),
+        default=False,
+        help_text=_('Indicates whether the customer has received this order or not.'),
+    )
 
     def get_start_date(self):
         date = formats.date_format(self.start_date, format='DATETIME_FORMAT', use_l10n=True)

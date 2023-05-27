@@ -83,7 +83,9 @@ class OrderSerializer(serializers.ModelSerializer):
                   'pickup_address',
                   'start_date',
                   'rental_days',
-                  'payment_method')
+                  'payment_method',
+                  'is_paid',
+                  'is_delivered')
 
 
 class UserSerializer(UserCreateSerializer):
