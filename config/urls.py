@@ -17,7 +17,8 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.shortcuts import render
+from django.urls import path, include, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -35,11 +36,20 @@ schema_view = get_schema_view(
     permission_classes=[permissions.AllowAny],
 )
 
+
+def render_react(request):
+    return render(request, "index.html")
+
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/v1/', include('car_park_api.urls')),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-]
+                  path('admin/', admin.site.urls),
+                  path('api/v1/', include('car_park_api.urls')),
+                  path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + [
+                  re_path(r"^$", render_react),
+                  re_path(r"^(?:.*)/?$", render_react),
+              ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

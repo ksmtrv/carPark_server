@@ -1,12 +1,13 @@
 from django.urls import include, path
 from rest_framework import routers
-from .views import CustomerViewSet, DriverViewSet, CarViewSet, OrderViewSet, SendEmailView
+from .views import CustomerViewSet, DriverViewSet, CarViewSet, OrderViewSet, SendEmailView, CurrentUserRoleView
 
 router = routers.SimpleRouter()
 router.register('auth/users/customers', CustomerViewSet)
 router.register('auth/users/drivers', DriverViewSet)
 router.register('cars', CarViewSet)
 router.register('orders', OrderViewSet)
+router.register('currentrole', CurrentUserRoleView)
 
 
 # Wire up our API using automatic URL routing.

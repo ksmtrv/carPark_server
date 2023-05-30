@@ -5,11 +5,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models import F, ExpressionWrapper, Func
+from django.http import HttpResponse
 from djoser import signals, utils
 from djoser.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -192,3 +194,19 @@ class SendEmailView(APIView):
             return Response(status=status.HTTP_200_OK)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class CurrentUserRoleView(RetrieveModelMixin, GenericViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        res = dict()
+        obj = request.user
+        if obj.is_driver:
+            res["role"] = "driver"
+        else:
+            res["role"] = "client"
+
+        return Response(res, status=status.HTTP_200_OK)
+

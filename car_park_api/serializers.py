@@ -11,18 +11,18 @@ class CarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Car
         fields = ('id',
-            'name',
-            'year_release',
-            'mileage',
-            'volume',
-            'power',
-            'box',
-            'engine_type',
-            'fuel',
-            'drive',
-            'overclocking',
-            'price',
-            'car_image')
+                  'name',
+                  'year_release',
+                  'mileage',
+                  'volume',
+                  'power',
+                  'box',
+                  'engine_type',
+                  'fuel',
+                  'drive',
+                  'overclocking',
+                  'price',
+                  'car_image')
 
     def validate(self, attrs):
         year_release = attrs.get('year_release')
@@ -65,7 +65,8 @@ class CarSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ('owner',
+        fields = ('id',
+                  'owner',
                   'driver',
                   'car',
                   'first_name',
@@ -129,7 +130,6 @@ class DriverSerializer(UserSerializer):
 
 
 class CustomerInfoSerializer(UserSerializer):
-
     class Meta:
         model = User
         fields = ('email',
