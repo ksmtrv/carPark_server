@@ -114,7 +114,6 @@ class UserSerializer(UserCreateSerializer):
                                    is_driver=is_driver)
         user.set_password(validated_data['password'])
         user.save()
-        # TODO: validate fields
 
         return user
 
@@ -132,7 +131,8 @@ class DriverSerializer(UserSerializer):
 class CustomerInfoSerializer(UserSerializer):
     class Meta:
         model = User
-        fields = ('email',
+        fields = ('id',
+                  'email',
                   'first_name',
                   'last_name',
                   'patronymic',

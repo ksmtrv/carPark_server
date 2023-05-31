@@ -5,7 +5,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models import F, ExpressionWrapper, Func
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from djoser import signals, utils
 from djoser.conf import settings
 from rest_framework import status
@@ -62,7 +62,7 @@ class OrderViewSet(ModelViewSet):
             return queryset_none
         if is_delivery is not None and is_delivery == "true":
             curr = datetime.now().timestamp()
-            queryset = Order.objects.filter(delivery_type='Доставка')
+            queryset = Order.objects.filter(delivery_type='Доставка', driver=self.request.user)
             queryset_none = set()
             for item in queryset:
                 if (item.start_date + timedelta(days=item.rental_days)).timestamp() > curr:
@@ -209,4 +209,26 @@ class CurrentUserRoleView(RetrieveModelMixin, GenericViewSet):
             res["role"] = "client"
 
         return Response(res, status=status.HTTP_200_OK)
+
+
+class VerifySecretWord(APIView):
+    def get(self, request, *args, **kwargs):
+        q = User.objects.all()
+        user = q.get(phone_number=f'+{request.query_params.get("tel")}')
+        if user.secret_word == request.query_params.get("secret"):
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class SetNewPass(APIView):
+    def post(self, request, *args, **kwargs):
+        q = User.objects.all()
+        user = q.get(phone_number=f'+{request.data.get("tel")}')
+        if user.secret_word == request.data.get("secret"):
+            user.set_password(request.data.get("pass"))
+            user.save()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
